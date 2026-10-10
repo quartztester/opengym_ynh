@@ -1,0 +1,14 @@
+#!/bin/bash
+source /usr/share/yunohost/helpers
+
+ynh_script_progression "Stopping openGym API..."
+systemctl stop "$app" 2>/dev/null || true
+
+ynh_script_progression "Removing nginx, logo and systemd unit..."
+ynh_config_remove_nginx
+ynh_config_remove_systemd
+systemctl daemon-reload
+ynh_safe_rm "/usr/share/yunohost/applogos/$app.png"
+
+ynh_script_progression "Removing install dir and data..."
+ynh_safe_rm "$data_dir"

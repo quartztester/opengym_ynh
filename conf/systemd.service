@@ -1,0 +1,23 @@
+[Unit]
+Description=openGym API (__APP__)
+After=network.target
+
+[Service]
+Type=simple
+User=__APP__
+Group=__APP__
+WorkingDirectory=__INSTALL_DIR__/api
+EnvironmentFile=__INSTALL_DIR__/env
+Environment=DATA_DIR=__DATA_DIR__
+Environment=PORT=__PORT__
+Environment=TRUST_PROXY=1
+ExecStart=__NODEJS_DIR__/node __INSTALL_DIR__/api/server.js
+NoNewPrivileges=yes
+ProtectSystem=full
+# NB: no ProtectHome — the YunoHost data_dir lives under /home/yunohost.app.
+PrivateTmp=yes
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

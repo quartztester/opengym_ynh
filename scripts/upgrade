@@ -1,0 +1,77 @@
+#!/bin/bash
+source /usr/share/yunohost/helpers
+
+ynh_script_progression "Backing up env across the source swap..."
+cp "$install_dir/env" /tmp/$app-env.bak 2>/dev/null || true
+
+ynh_script_progression "Updating openGym sources..."
+ynh_setup_source --dest_dir="$install_dir"
+mkdir -p "$data_dir" "$install_dir/frontend/dist"
+chmod 750 "$data_dir"
+
+if [ -f /tmp/$app-env.bak ]; then
+    cp /tmp/$app-env.bak "$install_dir/env"
+    ynh_safe_rm /tmp/$app-env.bak
+else
+    # Pre-existing installs from before the env file existed: render it now.
+    domain=$(ynh_app_setting_get --key=domain)
+    cat > "$install_dir/env" <<EOF
+RP_ID=${domain}
+ORIGIN=https://${domain}
+RP_NAME=openGym
+FIRST_USER_ADMIN=1
+TRUST_PROXY=1
+EOF
+fi
+chmod 600 "$install_dir/env"
+
+ynh_script_progression "Installing API dependencies..."
+pushd "$install_dir/api" || exit 1
+    npm ci --omit=dev --no-audit --no-fund
+popd || exit 1
+
+ynh_script_progression "Installing frontend build dependencies..."
+pushd "$install_dir/frontend" || exit 1
+    npm ci --ignore-scripts --no-audit --no-fund
+popd || exit 1
+
+ynh_script_progression "Rebuilding the frontend..."
+pushd "$install_dir/frontend" || exit 1
+    APP_BUILD="ynh" npm run build
+popd || exit 1
+
+# Media dataset persists across upgrades (it lives in install_dir/media and
+# ynh_setup_source only replaces the extracted tarball paths); no refetch.
+
+ynh_script_progression "Re-rendering systemd and nginx..."
+ynh_safe_rm "/etc/systemd/system/$app.service"
+ynh_config_add_systemd
+domain=$(ynh_app_setting_get --key=domain || echo "")
+if [ -n "${domain:-}" ]; then
+    ynh_safe_rm "/etc/nginx/conf.d/$domain.d/$app.conf"
+    ynh_config_add_nginx
+fi
+if [ -f "$YNH_APP_BASEDIR/doc/opengym.png" ]; then
+    cp "$YNH_APP_BASEDIR/doc/opengym.png" "/usr/share/yunohost/applogos/$app.png"
+    yunohost user permission update "$app.main" --logo "/usr/share/yunohost/applogos/$app.png" || true
+fi
+
+chown -R "$app:$app" "$install_dir" "$data_dir"
+chmod o+x "$install_dir" "$install_dir/frontend" 2>/dev/null || true
+[ -d "$install_dir/media" ] && chmod -R o+rX "$install_dir/media"
+
+systemctl daemon-reload
+ynh_systemctl --service="$app" --action=start --log_path=systemd --timeout=60
+
+ynh_script_progression "Waiting for the API..."
+waited=0
+while [ "$waited" -lt 60 ]; do
+    if curl -fsS -m 3 "http://127.0.0.1:$port/api/health" >/dev/null 2>&1; then
+        break
+    fi
+    sleep 2
+    waited=$((waited + 2))
+done
+[ "$waited" -ge 60 ] && ynh_print_warn "API not answering after 60s — check: journalctl -u $app"
+
+ynh_script_progression "openGym upgrade complete."

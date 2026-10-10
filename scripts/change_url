@@ -1,0 +1,32 @@
+#!/bin/bash
+source /usr/share/yunohost/helpers
+
+ynh_script_progression "Moving $app from $old_domain$old_path to $domain$path..."
+
+ynh_safe_rm "/etc/nginx/conf.d/$old_domain.d/$app.conf"
+rmdir "/etc/nginx/conf.d/$old_domain.d" 2>/dev/null || true
+
+ynh_app_setting_set --key=domain --value="$domain"
+ynh_app_setting_set --key=path --value="$path"
+
+ynh_config_add_nginx
+
+# Passkey relying party is bound to the origin: re-render the three
+# origin-derived lines in env, keeping any admin-added lines.
+if [ -f "$install_dir/env" ]; then
+    ynh_script_progression "Re-rendering passkey config (RP_ID=$domain)..."
+    grep -vE '^(RP_ID|ORIGIN|RP_NAME)=' "$install_dir/env" > /tmp/$app-env.$$ || true
+    {
+        echo "RP_ID=${domain}"
+        echo "ORIGIN=https://${domain}"
+        echo "RP_NAME=openGym"
+        cat /tmp/$app-env.$$
+    } > "$install_dir/env"
+    ynh_safe_rm /tmp/$app-env.$$
+    chown "$app:$app" "$install_dir/env"
+    chmod 600 "$install_dir/env"
+fi
+
+systemctl restart "$app"
+
+ynh_script_progression "openGym moved. NB: previously registered passkeys were bound to the old origin and must be re-registered inside the app."

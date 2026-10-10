@@ -1,0 +1,134 @@
+#!/bin/bash
+source /usr/share/yunohost/helpers
+
+# openGym's frontend derives all URLs relative to the page and the API
+# checks Origin/Referrer against ORIGIN, which we set from domain+path —
+# a subpath install works; nothing to reject here.
+
+#=================================================
+# SOURCE (tagged GitHub release tarball)
+#=================================================
+ynh_script_progression "Downloading and extracting openGym sources..."
+ynh_setup_source --dest_dir="$install_dir"
+
+# The API imports ../api/coach/core from the frontend build, so the upstream
+# repo layout must be preserved (both dirs under install_dir, as built).
+mkdir -p "$data_dir" "$install_dir/frontend/dist"
+# data_dir holds user accounts, the session secret and VAPID keys: keep it
+# traversable by group only (the resource creates it world-readable).
+chmod 750 "$data_dir"
+chown -R "$app:$app" "$install_dir" "$data_dir"
+
+#=================================================
+# NODE DEPENDENCIES (production only)
+#=================================================
+ynh_script_progression "Installing API dependencies (npm ci --omit=dev)..."
+pushd "$install_dir/api" || exit 1
+    npm ci --omit=dev --no-audit --no-fund
+popd || exit 1
+
+ynh_script_progression "Installing frontend build dependencies..."
+pushd "$install_dir/frontend" || exit 1
+    # --ignore-scripts: the capacitor/sharp postinstall draws app icons for
+    # the Android/iOS builds and downloads libvips from GitHub — not needed
+    # for `vite build` (same flag upstream's own Dockerfile uses).
+    npm ci --ignore-scripts --no-audit --no-fund
+popd || exit 1
+
+#=================================================
+# ENVIRONMENT (passkey relying party etc.)
+# EnvironmentFile in systemd; ynh_config_add_systemd renders the unit from
+# the template, and this env file holds the per-instance identity values.
+#=================================================
+ynh_script_progression "Writing environment file (RP_ID=__DOMAIN__ ORIGIN=https://__DOMAIN____PATH__)..."
+domain=$(ynh_app_setting_get --key=domain)
+# Passkeys are bound to the *origin*: RP_ID is the registrable domain, ORIGIN
+# the exact scheme://host[:path-less base] the browser will send. The app's
+# webauthn library expects ORIGIN without a trailing slash.
+origin="https://${domain}"
+cat > "$install_dir/env" <<EOF
+RP_ID=${domain}
+ORIGIN=${origin}
+RP_NAME=openGym
+FIRST_USER_ADMIN=1
+TRUST_PROXY=1
+EOF
+# The API only reads ORIGIN/RP_* from its environment; TRUST_PROXY is pinned
+# in the systemd unit. Data dir + port likewise.
+chown "$app:$app" "$install_dir/env"
+chmod 600 "$install_dir/env"
+
+#=================================================
+# FRONTEND BUILD (static assets)
+#=================================================
+ynh_script_progression "Building the frontend (vite build)..."
+pushd "$install_dir/frontend" || exit 1
+    APP_BUILD="ynh" npm run build
+popd || exit 1
+chown -R "$app:$app" "$install_dir"
+
+#=================================================
+# OPTIONAL EXERCISE MEDIA (~350 MB, GymVisual-licensed dataset)
+#=================================================
+download_media=$(ynh_app_setting_get --key=download_media)
+if [ "$download_media" = "1" ] || [ "$download_media" = "true" ]; then
+    ynh_script_progression "Downloading exercise media dataset (one time, ~350 MB)..."
+    # Same source upstream's compose 'media' service clones. MIT metadata,
+    # GymVisual (c) images — fetched from upstream, not redistributed by us.
+    # Lands in install_dir (nginx-readable), not the 0750 data_dir.
+    # Clean any stale clone first (a failed earlier run would block git clone).
+    ynh_safe_rm /tmp/opengym-dataset
+    mkdir -p /tmp/opengym-dataset && ynh_safe_rm /tmp/opengym-dataset
+    if git clone --depth 1 https://github.com/hasaneyldrm/exercises-dataset /tmp/opengym-dataset >>/var/log/$app-install.log 2>&1; then
+        mkdir -p "$install_dir/media/img" "$install_dir/media/gif"
+        cp /tmp/opengym-dataset/images/*.jpg "$install_dir/media/img/" 2>>/var/log/$app-install.log
+        cp /tmp/opengym-dataset/videos/*.gif "$install_dir/media/gif/" 2>>/var/log/$app-install.log
+        ynh_print_info "Exercise media: $(ls "$install_dir/media/img" | wc -l) images ready."
+    else
+        ynh_print_warn "Exercise media download failed (network?) — app works without images; re-run later from the console docs."
+    fi
+    ynh_safe_rm /tmp/opengym-dataset
+fi
+# nginx (www-data) must be able to traverse the serving path: the
+# resources default is 750, which 404s (→ redirect loop via the SPA
+# fallback) every static file.
+chmod o+x "$install_dir" "$install_dir/frontend" 2>/dev/null || true
+[ -d "$install_dir/media" ] && chmod -R o+rX "$install_dir/media"
+chown -R "$app:$app" "$data_dir"
+
+#=================================================
+# SYSTEMD SERVICE (API)
+#=================================================
+ynh_script_progression "Configuring systemd service..."
+ynh_config_add_systemd
+ynh_systemctl --service="$app" --action=start --log_path=systemd --timeout=60
+
+#=================================================
+# WAIT FOR THE API
+#=================================================
+ynh_script_progression "Waiting for the API to answer..."
+waited=0
+while [ "$waited" -lt 60 ]; do
+    if curl -fsS -m 3 "http://127.0.0.1:$port/api/health" >/dev/null 2>&1 \
+       || curl -fsS -m 3 "http://127.0.0.1:$port/" >/dev/null 2>&1 \
+       || curl -s -m 3 -o /dev/null "http://127.0.0.1:$port/api/config" | grep -q .; then
+        break
+    fi
+    sleep 2
+    waited=$((waited + 2))
+done
+[ "$waited" -ge 60 ] && ynh_print_warn "API not answering on 127.0.0.1:$port after 60s — check: journalctl -u $app"
+
+#=================================================
+# NGINX + PORT
+#=================================================
+ynh_script_progression "Configuring nginx..."
+ynh_config_add_nginx
+
+# Portal logo (ships with the package when present)
+if [ -f "$YNH_APP_BASEDIR/doc/logo.png" ]; then
+    cp "$YNH_APP_BASEDIR/doc/logo.png" "/usr/share/yunohost/applogos/$app.png"
+    yunohost user permission update "$app.main" --logo "/usr/share/yunohost/applogos/$app.png" || true
+fi
+
+ynh_script_progression "openGym installation completed."
