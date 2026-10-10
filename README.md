@@ -19,7 +19,11 @@ identity (openGym has no LDAP mode), so access control on the portal side is
 
 ## Screenshot
 
-_(add `doc/screenshot.png` — app dashboard with routine view — before submitting to the catalog; the catalog index requires a 1280×720 screenshot at this path.)_
+![openGym home](doc/screenshot.png)
+
+Home dashboard from the [official public demo](https://opengym.duarte-santos.ch/demo/):
+weekly plan with scheduled workout, gym check-in, body-weight chart, and the
+Home/Plan/Start/Stats/Exercises dock. Captured at 1280×720 (catalog spec).
 
 ## About notable settings
 
