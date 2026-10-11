@@ -51,6 +51,11 @@ if [ -n "${domain:-}" ]; then
     ynh_safe_rm "/etc/nginx/conf.d/$domain.d/$app.conf"
     ynh_config_add_nginx
 fi
+# Re-deploy the default identity map ONLY if the contrib SSO glue hasn't
+# already written its own (we must never clobber a live SSO map).
+if [ ! -f /etc/nginx/conf.d/zz-opengym-sso-map.conf ]; then
+    ynh_config_add --template="sso-map.conf" --destination="/etc/nginx/conf.d/zz-opengym-sso-map.conf"
+fi
 if [ -f "$YNH_APP_BASEDIR/doc/opengym.png" ]; then
     cp "$YNH_APP_BASEDIR/doc/opengym.png" "/usr/share/yunohost/applogos/$app.png"
     yunohost user permission update "$app.main" --logo "/usr/share/yunohost/applogos/$app.png" || true
