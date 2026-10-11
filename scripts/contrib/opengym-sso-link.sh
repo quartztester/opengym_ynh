@@ -1,4 +1,6 @@
 #!/bin/bash
+
+source /usr/share/yunohost/helpers
 # opengym-sso-link — make a YunoHost SSO account open openGym already signed in.
 #
 # No fork, no app changes. openGym's whole session is one HMAC-signed token
@@ -38,8 +40,8 @@ while [ $# -gt 0 ]; do
     esac
 done
 
-DATA=$(yunohost app setting "$APP" data_dir)
-PORT=$(yunohost app setting "$APP" port)
+DATA=$(ynh_app_setting_get --app="$APP" --key=data_dir)
+PORT=$(ynh_app_setting_get --app="$APP" --key=port)
 [ -d "$DATA" ] || { echo "data dir $DATA missing — is $APP installed?" >&2; exit 1; }
 
 # Require ssowat to inject the identity header for this app's permission.
@@ -125,7 +127,7 @@ for _ in $(seq 1 20); do curl -fsS -m 2 "http://127.0.0.1:$PORT/api/health" >/de
 # Ensure the app's live nginx conf uses the map var (older renders pinned
 # `Authorization "";`). Same replacement lives in the package's nginx.conf
 # template, so future renders are correct on their own.
-DOMAIN=$(yunohost app setting "$APP" domain)
+DOMAIN=$(ynh_app_setting_get --app="$APP" --key=domain)
 NGX="/etc/nginx/conf.d/$DOMAIN.d/$APP.conf"
 if [ -f "$NGX" ] && grep -q 'proxy_set_header Authorization "";' "$NGX"; then
     sed -i 's|proxy_set_header Authorization "";|proxy_set_header Authorization $opengym_auth;|' "$NGX"
