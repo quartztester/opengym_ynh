@@ -12,7 +12,6 @@ openGym est un suivi d'entraînements auto-hébergé (séances, exercices, donn�
 - Frontend statique + API Node natifs (sans Docker)
 - Authentification passkey (webauthn)
 - Jeu de données d'exercices optionnel (images/GIF)
-- Authentification unique YunoHost via le script contrib opengym-sso-link (facultatif)
 
 ## Liens
 

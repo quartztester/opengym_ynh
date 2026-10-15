@@ -46,11 +46,6 @@ popd || exit 1
 ynh_script_progression "Re-rendering systemd and nginx..."
 ynh_safe_rm "/etc/systemd/system/$app.service"
 ynh_config_add_systemd
-# Same ordering as install: map first (nginx reload happens inside
-# ynh_config_add_nginx below), and never clobber a live contrib SSO map.
-if [ ! -f /etc/nginx/conf.d/zz-opengym-sso-map.conf ]; then
-    ynh_config_add --template="sso-map.conf" --destination="/etc/nginx/conf.d/zz-opengym-sso-map.conf"
-fi
 domain=$(ynh_app_setting_get --key=domain || echo "")
 if [ -n "${domain:-}" ]; then
     ynh_safe_rm "/etc/nginx/conf.d/$domain.d/$app.conf"

@@ -36,9 +36,6 @@ Home/Plan/Start/Stats/Exercises dock. Captured at 1280×720 (catalog spec).
   (`FIRST_USER_ADMIN=1`). The YunoHost permission on the URL (default:
   `all_users`) is a reachability gate, not the app identity; signup can be
   locked to invite codes inside openGym's admin settings.
-- **SSO link helper** — `scripts/contrib/opengym-sso-link.sh` optionally
-  seeds an app account matching a portal user (convenience only; passkeys
-  remain the app-side login).
 
 ## Update and backups
 

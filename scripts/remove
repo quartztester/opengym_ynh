@@ -8,14 +8,6 @@ ynh_script_progression "Removing nginx, logo and systemd unit..."
 ynh_config_remove_nginx
 ynh_config_remove_systemd
 systemctl daemon-reload
-# Remove the $opengym_auth map + SSO glue store, but only when this is
-# the last opengym instance (the map path is shared across instances:
-# deleting it while another instance's nginx conf still references
-# $opengym_auth would break the whole nginx).
-if ! yunohost app list 2>/dev/null | grep -q "id: opengym__"; then
-    ynh_safe_rm "/etc/nginx/conf.d/zz-opengym-sso-map.conf"
-    ynh_safe_rm "/var/lib/opengym-sso"
-fi
 ynh_safe_rm "/usr/share/yunohost/applogos/$app.png"
 
 ynh_script_progression "Removing install dir and data..."

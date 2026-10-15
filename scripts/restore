@@ -28,12 +28,6 @@ ynh_restore "$install_dir/env"
 
 ynh_script_progression "Restoring systemd unit and nginx..."
 ynh_restore "/etc/systemd/system/$app.service"
-# Same ordering as install: map BEFORE the nginx conf (the reload inside
-# ynh_config_add_nginx needs $opengym_auth defined), never clobber a live
-# contrib SSO map.
-if [ ! -f /etc/nginx/conf.d/zz-opengym-sso-map.conf ]; then
-    ynh_config_add --template="sso-map.conf" --destination="/etc/nginx/conf.d/zz-opengym-sso-map.conf"
-fi
 ynh_config_add_nginx
 
 chown -R "$app:$app" "$install_dir" "$data_dir"

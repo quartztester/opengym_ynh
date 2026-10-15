@@ -123,15 +123,6 @@ done
 # NGINX + PORT
 #=================================================
 ynh_script_progression "Configuring nginx..."
-# Deploy the default (identity) map for $opengym_auth BEFORE the nginx conf:
-# ynh_config_add_nginx triggers a reload, and without the map defined the
-# reload fails with 'unknown "opengym_auth" variable' — breaking ALL sites
-# (this exact failure aborted the first install attempt).
-# Same path the contrib SSO glue owns, so a later contrib run cleanly
-# overwrites this default with the real map. Never clobber an existing one.
-if [ ! -f /etc/nginx/conf.d/zz-opengym-sso-map.conf ]; then
-    ynh_config_add --template="sso-map.conf" --destination="/etc/nginx/conf.d/zz-opengym-sso-map.conf"
-fi
 ynh_config_add_nginx
 
 # Portal logo (ships with the package when present)
