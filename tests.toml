@@ -4,9 +4,6 @@ test_format = 1.0
 
 [default]
 
-    # The app answers at the root with the SPA; /api/health is JSON.
-    test_url = "https://__DOMAIN__"
+    # Upgrade tests: last commit of each previous package version.
 
-    [default.test_for_install]
-
-    [default.test_for_upgrade]
+    test_upgrade_from.3c79948.name = "1.3.10~ynh1"
