@@ -19,7 +19,7 @@ identity (openGym has no LDAP mode), so access control on the portal side is
 
 ## Screenshot
 
-![openGym home](doc/screenshot.png)
+![openGym home](logos/opengym.png)
 
 Home dashboard from the [official public demo](https://opengym.duarte-santos.ch/demo/):
 weekly plan with scheduled workout, gym check-in, body-weight chart, and the
@@ -57,9 +57,9 @@ the standard YunoHost app backup: everything lives in `install_dir` +
 
 ## Screenshots
 
-![openGym home screen](./doc/screenshots/home.png)
-![Progress charts](./doc/screenshots/stats.png)
-![Exercise library](./doc/screenshots/library.png)
+![openGym — home](./doc/screenshots/home.png)
+![openGym — library](./doc/screenshots/library.png)
+![openGym — stats](./doc/screenshots/stats.png)
 
 ## Links
 
