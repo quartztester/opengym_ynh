@@ -55,6 +55,12 @@ the standard YunoHost app backup: everything lives in `install_dir` +
 - The ~350 MB media fetch at install is from the upstream dataset host; a
   failure there does not break the install (warns and continues).
 
+## Screenshots
+
+![openGym home screen](./doc/screenshots/home.png)
+![Progress charts](./doc/screenshots/stats.png)
+![Exercise library](./doc/screenshots/library.png)
+
 ## Links
 
 - Upstream: <https://github.com/DuarteSantos8/openGym>

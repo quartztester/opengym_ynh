@@ -15,3 +15,10 @@ openGym est un suivi d'entraînements auto-hébergé (séances, exercices, donn�
 
 - Projet amont : <https://github.com/tskopos/openGym>
 - Paquet YunoHost : <https://github.com/quartztester/opengym_ynh>
+
+## Screenshots
+
+![openGym home screen](./doc/screenshots/home.png)
+![Progress charts](./doc/screenshots/stats.png)
+![Exercise library](./doc/screenshots/library.png)
+
