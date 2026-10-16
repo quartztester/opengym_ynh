@@ -76,6 +76,7 @@ popd || exit 1
 ynh_script_progression "Re-rendering systemd and nginx..."
 ynh_safe_rm "/etc/systemd/system/$app.service"
 ynh_config_add_systemd
+yunohost service add "$app" --description="openGym API"
 domain=$(ynh_app_setting_get --key=domain || echo "")
 if [ -n "${domain:-}" ]; then
     ynh_safe_rm "/etc/nginx/conf.d/$domain.d/$app.conf"

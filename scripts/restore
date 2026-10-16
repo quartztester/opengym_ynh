@@ -51,6 +51,7 @@ ynh_restore "$install_dir/env"
 
 ynh_script_progression "Restoring systemd unit and nginx..."
 ynh_restore "/etc/systemd/system/$app.service"
+yunohost service add "$app" --description="openGym API"
 ynh_config_add_nginx
 
 #=================================================
