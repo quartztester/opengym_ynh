@@ -1,11 +1,26 @@
 #!/bin/bash
+
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
+
+# Keep this path for calling _common.sh inside the execution's context of backup and restore scripts
+source ../settings/scripts/_common.sh
 source /usr/share/yunohost/helpers
+
+#=================================================
+# RESTORE THE APP MAIN DIR
+#=================================================
 
 ynh_script_progression "Restoring openGym sources..."
 # Full reinstall of code (tarball + npm + build); data comes from the archive.
 ynh_setup_source --dest_dir="$install_dir" --keep="env"
 mkdir -p "$data_dir"
 chmod 750 "$data_dir"
+
+#=================================================
+# REBUILD THE APP
+#=================================================
 
 ynh_script_progression "Installing API dependencies..."
 pushd "$install_dir/api"
@@ -22,24 +37,48 @@ pushd "$install_dir/frontend"
     APP_BUILD="ynh" npm run build
 popd
 
+#=================================================
+# RESTORE THE DATA DIRECTORY
+#=================================================
+
 ynh_script_progression "Restoring env and data..."
 ynh_restore "$data_dir"
 ynh_restore "$install_dir/env"
+
+#=================================================
+# RESTORE SYSTEM CONFIGURATION
+#=================================================
 
 ynh_script_progression "Restoring systemd unit and nginx..."
 ynh_restore "/etc/systemd/system/$app.service"
 ynh_config_add_nginx
 
+#=================================================
+# FIX PERMISSIONS
+#=================================================
+
 chown -R "$app:$app" "$install_dir" "$data_dir"
 chmod 600 "$install_dir/env"
 chmod 750 "$data_dir"
 
+#=================================================
+# START SYSTEMD SERVICE
+#=================================================
+
 ynh_systemctl --service="$app" --action=start --log_path=systemd --timeout=60
+
+#=================================================
+# REFRESH PORTAL LOGO
+#=================================================
 
 # Tile logo refresh (supported override for non-catalog apps)
 if [ -f "$YNH_APP_BASEDIR/doc/logo.png" ]; then
     cp "$YNH_APP_BASEDIR/doc/logo.png" "/usr/share/yunohost/applogos/$app.png"
     yunohost user permission update "$app.main" --logo "/usr/share/yunohost/applogos/$app.png" || true
 fi
+
+#=================================================
+# END OF SCRIPT
+#=================================================
 
 ynh_script_progression "openGym restoration completed."

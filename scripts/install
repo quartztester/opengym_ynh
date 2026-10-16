@@ -1,4 +1,10 @@
 #!/bin/bash
+
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
+
+source _common.sh
 source /usr/share/yunohost/helpers
 
 # openGym's frontend derives all URLs relative to the page and the API
@@ -6,7 +12,7 @@ source /usr/share/yunohost/helpers
 # a subpath install works; nothing to reject here.
 
 #=================================================
-# SOURCE (tagged GitHub release tarball)
+# SOURCE (TAGGED GITHUB RELEASE TARBALL)
 #=================================================
 ynh_script_progression "Downloading and extracting openGym sources..."
 ynh_setup_source --dest_dir="$install_dir"
@@ -20,7 +26,7 @@ chmod 750 "$data_dir"
 chown -R "$app:$app" "$install_dir" "$data_dir"
 
 #=================================================
-# NODE DEPENDENCIES (production only)
+# NODE DEPENDENCIES (PRODUCTION ONLY)
 #=================================================
 ynh_script_progression "Installing API dependencies (npm ci --omit=dev)..."
 pushd "$install_dir/api" || exit 1
@@ -59,7 +65,7 @@ chown "$app:$app" "$install_dir/env"
 chmod 600 "$install_dir/env"
 
 #=================================================
-# FRONTEND BUILD (static assets)
+# FRONTEND BUILD (STATIC ASSETS)
 #=================================================
 ynh_script_progression "Building the frontend (vite build)..."
 pushd "$install_dir/frontend" || exit 1
@@ -68,7 +74,7 @@ popd || exit 1
 chown -R "$app:$app" "$install_dir"
 
 #=================================================
-# OPTIONAL EXERCISE MEDIA (~350 MB, GymVisual-licensed dataset)
+# OPTIONAL EXERCISE MEDIA (~350 MB, GYMVISUAL-LICENSED DATASET)
 #=================================================
 download_media=$(ynh_app_setting_get --key=download_media)
 if [ "$download_media" = "1" ] || [ "$download_media" = "true" ]; then
@@ -130,5 +136,9 @@ if [ -f "$YNH_APP_BASEDIR/doc/logo.png" ]; then
     cp "$YNH_APP_BASEDIR/doc/logo.png" "/usr/share/yunohost/applogos/$app.png"
     yunohost user permission update "$app.main" --logo "/usr/share/yunohost/applogos/$app.png" || true
 fi
+
+#=================================================
+# END OF SCRIPT
+#=================================================
 
 ynh_script_progression "openGym installation completed."

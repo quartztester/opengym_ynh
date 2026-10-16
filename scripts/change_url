@@ -1,5 +1,15 @@
 #!/bin/bash
+
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
+
+source _common.sh
 source /usr/share/yunohost/helpers
+
+#=================================================
+# MODIFY URL IN NGINX CONF
+#=================================================
 
 ynh_script_progression "Moving $app from $old_domain$old_path to $domain$path..."
 
@@ -10,6 +20,10 @@ ynh_app_setting_set --key=domain --value="$domain"
 ynh_app_setting_set --key=path --value="$path"
 
 ynh_config_add_nginx
+
+#=================================================
+# UPDATE PASSKEY CONFIG
+#=================================================
 
 # Passkey relying party is bound to the origin: re-render the three
 # origin-derived lines in env, keeping any admin-added lines.
@@ -27,6 +41,14 @@ if [ -f "$install_dir/env" ]; then
     chmod 600 "$install_dir/env"
 fi
 
+#=================================================
+# RESTART THE APP SERVICE
+#=================================================
+
 systemctl restart "$app"
+
+#=================================================
+# END OF SCRIPT
+#=================================================
 
 ynh_script_progression "openGym moved. NB: previously registered passkeys were bound to the old origin and must be re-registered inside the app."

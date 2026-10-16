@@ -1,12 +1,32 @@
 #!/bin/bash
+
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
+
+# Keep this path for calling _common.sh inside the execution's context of backup and restore scripts
+source ../settings/scripts/_common.sh
 source /usr/share/yunohost/helpers
+
+#=================================================
+# BACKUP THE DATA DIRECTORY
+#=================================================
 
 ynh_print_info "Declaring files to be backed up..."
 
 # Accounts, per-user data, uploads, session secret, VAPID keys.
 ynh_backup "$data_dir"
+
+#=================================================
+# BACKUP ENV AND SYSTEMD UNIT
+#=================================================
+
 # env (RP_ID/ORIGIN) + unit; the built frontend and node_modules are rebuilt
 # by the install/upgrade scripts, so only the small source-of-truth pieces
 # that are NOT reproducible from the tarball are archived: env and the unit.
 ynh_backup "$install_dir/env"
 ynh_backup "/etc/systemd/system/$app.service"
+
+#=================================================
+# END OF SCRIPT
+#=================================================
