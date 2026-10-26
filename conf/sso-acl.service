@@ -1,0 +1,9 @@
+# Repairs the ACL mask on the two files the SSO mint route (nginx lua) reads.
+# The API's atomicWrite recreates them with mode 0600 on every save, which
+# parks the ACL mask at --- and silently kills the www-data read entry.
+[Unit]
+Description=__APP__ SSO ACL repair
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c 'for f in "__DATA_DIR__/db.json" "__DATA_DIR__/secret"; do [ -e "$f" ] && setfacl -m m::r-- "$f"; done; true'

@@ -19,9 +19,12 @@ systemctl stop "$app" 2>/dev/null || true
 #=================================================
 
 ynh_script_progression "Removing nginx, logo and systemd unit..."
+systemctl disable --now "$app-sso-acl.path" 2>/dev/null || true
 ynh_config_remove_nginx
 yunohost service remove "$app" || true
 ynh_config_remove_systemd
+ynh_safe_rm "/etc/systemd/system/$app-sso-acl.path"
+ynh_safe_rm "/etc/systemd/system/$app-sso-acl.service"
 systemctl daemon-reload
 ynh_safe_rm "/usr/share/yunohost/applogos/$app.png"
 ynh_safe_rm "/etc/$app"

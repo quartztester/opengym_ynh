@@ -45,11 +45,35 @@ _opengym_sso_setup() {
     chown root:root "$sso_lua"
     chmod 644 "$sso_lua"
     # www-data must traverse data_dir (0750) and read secret/db.json (0600).
-    # Default ACL covers files the API creates later (db.json on first save).
+    # The ACL mask must be opened too: the API creates files with mode 0600,
+    # which parks the mask at --- and renders any ACL entry ineffective.
+    # The default ACL (mask r--) covers files the API creates later
+    # (db.json is rewritten via tmp+rename on every save).
     setfacl -m u:www-data:--x "$data_dir" 2>/dev/null || \
         ynh_print_warn "setfacl failed — SSO mint route will 503 until data_dir is readable"
-    setfacl -d -m u:www-data:r-- "$data_dir" 2>/dev/null || true
-    [ -f "$data_dir/secret" ] && setfacl -m u:www-data:r-- "$data_dir/secret" 2>/dev/null || true
-    [ -f "$data_dir/db.json" ] && setfacl -m u:www-data:r-- "$data_dir/db.json" 2>/dev/null || true
+    setfacl -d -m u:www-data:r--,m::r-- "$data_dir" 2>/dev/null || true
+    [ -f "$data_dir/secret" ] && setfacl -m u:www-data:r--,m::r-- "$data_dir/secret" 2>/dev/null || true
+    [ -f "$data_dir/db.json" ] && setfacl -m u:www-data:r--,m::r-- "$data_dir/db.json" 2>/dev/null || true
+
+    # Watchdog: the API recreates db.json/secret at mode 0600 on every save,
+    # which breaks the ACL mask again — a systemd path unit repairs it right
+    # after each write (the mint route's read retries bridge the gap).
+    ynh_config_add --template="sso-acl.service" --destination="/etc/systemd/system/$app-sso-acl.service"
+    ynh_config_add --template="sso-acl.path" --destination="/etc/systemd/system/$app-sso-acl.path"
+    systemctl daemon-reload
+    systemctl enable --now "$app-sso-acl.path"
+
+    # The mint route and the provisioning flow both use the app's password
+    # path, which upstream ships switched off. Turn it on while SSO is on;
+    # leave it alone afterwards so provisioned profiles keep a fallback way
+    # in even if the feature is later disabled.
+    local env_file
+    env_file="$(ynh_app_setting_get --key=install_dir)/env"
+    if [ "$sso_on" = "1" ] && ! grep -qx 'PASSWORD_LOGIN=1' "$env_file" 2>/dev/null; then
+        echo 'PASSWORD_LOGIN=1' >> "$env_file"
+        if systemctl is-active --quiet "$app"; then
+            ynh_systemctl --service="$app" --action=restart --log_path=systemd --timeout=60
+        fi
+    fi
 }
 

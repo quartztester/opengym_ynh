@@ -83,15 +83,31 @@ local function api(method, path, token, body)
     local line = sock:receive("*l")
     if not line then sock:close(); return nil, "no response" end
     local status = tonumber(line:match("(%d%d%d)")) or 0
-    local clen = 0
+    local clen, chunked = nil, false
     while true do
         line = sock:receive("*l")
         if not line or line == "" then break end
         local v = line:match("^[Cc]ontent%-[Ll]ength:%s*(%d+)")
         if v then clen = tonumber(v) end
+        if line:match("^[Tt]ransfer%-[Ee]ncoding:.*[Cc]hunked") then chunked = true end
     end
-    local out = ""
-    if clen > 0 then out = sock:receive(clen) or "" end
+    local out
+    if clen then
+        out = sock:receive(clen) or ""
+    elseif chunked then
+        -- The API frames its JSON responses with chunked encoding.
+        local parts = {}
+        while true do
+            local size_line = sock:receive("*l")
+            local size = size_line and tonumber(size_line, 16)
+            if not size or size <= 0 then break end
+            parts[#parts + 1] = sock:receive(size) or ""
+            sock:receive(2)  -- trailing CRLF
+        end
+        out = table.concat(parts)
+    else
+        out = sock:receive("*a") or ""
+    end
     sock:close()
     return status, cjson.decode(out)
 end
@@ -108,6 +124,9 @@ end
 -- db.json is rewritten wholesale by the API on every save; read defensively
 -- with retries so a torn/absent file costs a retry, not a wrong decision.
 local function load_db()
+    -- No file at all = fresh instance with zero accounts: an empty db,
+    -- not an error (the API below stays the single source of truth).
+    if not read_file(DB_FILE) then return { users = {} } end
     for _ = 1, 3 do
         local s = read_file(DB_FILE)
         local t = s and cjson.decode(s)
@@ -153,7 +172,7 @@ local auth = headers["authorization"] or ""
 -- Both must be SSOwat-injected: the Basic header only ever appears on URIs
 -- matched by the auth_header-enabled `sso` permission, i.e. a portal-authenticated
 -- request for exactly this route.
-if type(portal_user) ~= "string" or not auth:find("^Basic ", 1, true) then
+if type(portal_user) ~= "string" or auth:sub(1, 6) ~= "Basic " then
     return deny(401, "This route only works through a YunoHost portal session.")
 end
 portal_user = portal_user:sub(1, 40)
@@ -177,6 +196,17 @@ end
 local map = load_map()
 local uid = type(map[portal_user]) == "string" and map[portal_user]:match("^[%w%-_]+$") or nil
 local user = uid and find_by(db, "id", uid) or nil
+
+-- A profile may predate the SSO feature (claimed through the app's own
+-- login): adopt it by exact-name match and remember the binding.
+if not user then
+    user = find_by(db, "name", portal_user)
+    if user then
+        uid = user.id
+        map[portal_user] = uid
+        save_map(map)
+    end
+end
 
 if user and user.disabled then
     return deny(403, "This openGym profile has been disabled by an administrator.")
