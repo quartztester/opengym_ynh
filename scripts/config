@@ -1,0 +1,26 @@
+#!/bin/bash
+
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
+
+source _common.sh
+source /usr/share/yunohost/helpers
+
+#=================================================
+# CUSTOM APPLY
+#=================================================
+
+# Panel answers are stored by the core; re-render the mint-route lua with
+# them and reload nginx so the lua file cache picks it up immediately
+# (otherwise a code-cache expiry of up to 60s delays the toggle).
+ynh_app_config_apply() {
+	_ynh_app_config_apply
+	_opengym_sso_setup
+	ynh_systemctl --service=nginx --action=reload
+}
+
+#=================================================
+# RUN CONFIG PANEL ACTION
+#=================================================
+ynh_app_config_run $1

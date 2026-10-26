@@ -118,6 +118,15 @@ done
 [ "$waited" -ge 60 ] && ynh_print_warn "API not answering after 60s — check: journalctl -u $app"
 
 #=================================================
+# PORTAL SSO WALK-IN FILES
+#=================================================
+# Re-render after the source swap: the glue lives outside the upstream tree,
+# so an upgrade can never conflict with it; this only refreshes render inputs
+# (and applies the default-ACL so the mint route can still read secret/db).
+ynh_script_progression "Refreshing portal SSO walk-in files..."
+_opengym_sso_setup
+
+#=================================================
 # END OF SCRIPT
 #=================================================
 

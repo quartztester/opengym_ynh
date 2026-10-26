@@ -42,6 +42,15 @@ if [ -f "$install_dir/env" ]; then
 fi
 
 #=================================================
+# PORTAL SSO WALK-IN
+#=================================================
+# Regex permission URLs render once at install: re-pin to the new domain/path,
+# then re-render the mint-route lua (origin, redirect path, ACLs unchanged).
+ynh_permission_url --permission="sso" --url="re:^${domain}\\/(?:.*\\/)?ynh-sso-login$" 2>/dev/null || \
+    ynh_print_warn "Could not re-pin the sso permission URL — re-check after this change."
+_opengym_sso_setup
+
+#=================================================
 # RESTART THE APP SERVICE
 #=================================================
 

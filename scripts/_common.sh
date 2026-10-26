@@ -4,4 +4,52 @@
 # COMMON VARIABLES AND CUSTOM HELPERS
 #=================================================
 
-# Nothing shared yet — kept for the conventional script layout.
+# Portal SSO walk-in login (see conf/ynh_sso_login.lua). The lua lives under
+# /etc/$app so the app's own tree stays untouched by us.
+sso_lua="/etc/$app/sso/ynh_sso_login.lua"
+
+# Collect the render inputs for the lua template. Panel answers arrive as
+# shell variables of the same name; fall back to stored settings (the
+# ${key:-...} pattern keeps a config-panel apply from reading stale values).
+_opengym_sso_vars() {
+    local raw
+    raw="${sso_enabled:-$(ynh_app_setting_get --key=sso_enabled)}"
+    case "$raw" in 1|yes|true|on) sso_on=1 ;; *) sso_on=0 ;; esac
+    raw="${auto_provision:-$(ynh_app_setting_get --key=auto_provision)}"
+    case "$raw" in 1|yes|true|on) auto_provision=1 ;; *) auto_provision=0 ;; esac
+    sso_user_password="${sso_user_password:-$(ynh_app_setting_get --key=sso_user_password)}"
+    [ -z "$sso_user_password" ] && sso_user_password="$(ynh_string_random --length=24)" \
+        && ynh_app_setting_set --key=sso_user_password --value="$sso_user_password"
+    api_port="$port"
+    secret_file="$data_dir/secret"
+    db_file="$data_dir/db.json"
+    map_file="/etc/$app/sso/ynh_sso_map.json"
+    origin="https://$(ynh_app_setting_get --key=domain)"
+    # ORIGIN is always https (passkeys require it), so the __Host- cookie
+    # name the API uses for secure origins is the right one here too.
+    cookie="__Host-gymsid"
+    local cur_path
+    cur_path="$(ynh_app_setting_get --key=path)"
+    redirect="${cur_path%/}/"
+}
+
+# Render the mint-route lua and grant the nginx worker read-only access to
+# the two files it needs (session secret + accounts). Never write into
+# data_dir; the map lives under /etc/$app/sso.
+_opengym_sso_setup() {
+    mkdir -p "/etc/$app/sso"
+    chown root:www-data "/etc/$app/sso"
+    chmod 770 "/etc/$app/sso"
+    _opengym_sso_vars
+    ynh_config_add --template="ynh_sso_login.lua" --destination="$sso_lua"
+    chown root:root "$sso_lua"
+    chmod 644 "$sso_lua"
+    # www-data must traverse data_dir (0750) and read secret/db.json (0600).
+    # Default ACL covers files the API creates later (db.json on first save).
+    setfacl -m u:www-data:--x "$data_dir" 2>/dev/null || \
+        ynh_print_warn "setfacl failed — SSO mint route will 503 until data_dir is readable"
+    setfacl -d -m u:www-data:r-- "$data_dir" 2>/dev/null || true
+    [ -f "$data_dir/secret" ] && setfacl -m u:www-data:r-- "$data_dir/secret" 2>/dev/null || true
+    [ -f "$data_dir/db.json" ] && setfacl -m u:www-data:r-- "$data_dir/db.json" 2>/dev/null || true
+}
+

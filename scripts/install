@@ -127,6 +127,14 @@ done
 [ "$waited" -ge 60 ] && ynh_print_warn "API not answering on 127.0.0.1:$port after 60s — check: journalctl -u $app"
 
 #=================================================
+# PORTAL SSO WALK-IN (opt-in feature, off by default)
+#=================================================
+ynh_script_progression "Setting up portal SSO walk-in login files..."
+ynh_app_setting_set --key=sso_enabled --value="${sso_enabled:-0}"
+ynh_app_setting_set --key=auto_provision --value="${auto_provision:-1}"
+_opengym_sso_setup
+
+#=================================================
 # NGINX + PORT
 #=================================================
 ynh_script_progression "Configuring nginx..."

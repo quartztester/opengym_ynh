@@ -1,0 +1,35 @@
+#:schema https://github.com/YunoHost/apps/raw/main/schemas/config_panel.v1.schema.json
+
+version = "1.0"
+
+[main]
+name.en = "Portal SSO walk-in login"
+name.fr = "Connexion SSO portail"
+
+    [main.sso]
+    name.en = "Single sign-on from the YunoHost portal"
+
+        [main.sso.sso_enabled]
+        ask.en = "Enable SSO walk-in login"
+        ask.fr = "Activer la connexion SSO automatique"
+        help.en = "Signed-in portal users landing on /ynh-sso-login are logged straight into their openGym profile. openGym's own passkey login keeps working untouched; this only adds a way in. Upgrades of openGym never break it (nothing in the app is patched) but may require re-checking this route if upstream changes its session format — a failure here never locks anyone out, users just fall back to their passkey."
+        help.fr = "Les utilisateurs connectés au portail arrivant sur /ynh-sso-login sont connectés directement à leur profil openGym. La connexion par passkey d'openGym continue de fonctionner seule."
+        type = "boolean"
+        default = false
+        bind = "settings"
+
+        [main.sso.auto_provision]
+        ask.en = "Create openGym profiles automatically for new portal users"
+        help.en = "A portal user with no openGym profile yet gets one created on first visit through the app's own invite/register API. Turn this off to let people register themselves and only SSO existing profiles."
+        help.fr = "Un utilisateur du portail sans profil openGym en reçoit un à sa première visite, via l'API d'invitation de l'application."
+        type = "boolean"
+        default = true
+        bind = "settings"
+
+        [main.sso.sso_user_password]
+        ask.en = "Initial password for SSO-provisioned profiles"
+        help.en = "Placeholder password stored on auto-created profiles (password sign-in stays off, so it cannot be used to log in). It only lets the owner later set their own password or a passkey in openGym's Settings, which asks for the current one — share it with new users once. Leave empty to auto-generate."
+        help.fr = "Mot de passe par défaut des profils créés automatiquement (la connexion par mot de passe reste désactivée). À partager une fois avec les nouveaux utilisateurs pour qu'ils puissent ajouter leur propre passkey."
+        type = "password"
+        optional = true
+        bind = "settings"

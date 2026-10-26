@@ -20,10 +20,35 @@ Updates bump `version` + `sources.main` (URL and sha256) together. Backups use
 the standard YunoHost app backup: users, uploads, session secret and VAPID
 keys are all plain files under the app data dir.
 
+## Portal SSO walk-in login (config panel toggle, off by default)
+
+App config panel → *Portal SSO walk-in login* → enable. Portal-authenticated
+users visiting `https://<domain>/ynh-sso-login` land straight inside their
+openGym profile; with "auto provision" on, the profile is created on first
+visit through the app's own invite/register API (portal user → profile link
+kept in /etc/opengym/sso/). Users provisioned this way share the panel's
+"initial password" for the app's settings-proof step only (password login
+stays disabled) — share it with them once so they can add their own passkey.
+
+Security shape: the mint route answers only when SSOwat injected BOTH the
+`YNH_USER` identity and the Basic-Auth proof for that exact URI (a dedicated
+auth_header-enabled permission covering only /ynh-sso-login; the main
+permission stays auth_header=false, so the SPA's Bearer calls are never
+touched). The glue is package-side only (one nginx location + a lua file
+under /etc/opengym) — openGym's code is never patched, so upstream upgrades
+cannot conflict with it. If a future upstream release changes the session
+cookie format, the walk-in route starts failing while passkey login keeps
+working; then check for a package update.
+
+Remember: the FIRST account created — by walk-in or by hand — claims the
+instance admin (`FIRST_USER_ADMIN`). Register the owner account first, before
+enabling walk-in.
+
 ## Known limitations
 
-- openGym has no LDAP mode; SSO does not authenticate into the app (by
-  upstream design — it rejects proxy-header identity). Portal login + separate
-  app login is the expected UX.
+- openGym has no LDAP mode; it never accepts proxy-header identity itself
+  (upstream design). The portal SSO walk-in above works around this with a
+  package-side mint route — inside the app, accounts and passkeys stay the
+  app's own; portal login + one-time app login remains the fallback UX.
 - The ~350 MB media fetch at install comes from the upstream dataset host; a
   failure there does not break the install (warns and continues).
