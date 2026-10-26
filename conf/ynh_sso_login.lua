@@ -24,7 +24,7 @@ local COOKIE           = "__COOKIE__"
 local SECRET_FILE      = "__SECRET_FILE__"
 local DB_FILE          = "__DB_FILE__"
 local MAP_FILE         = "__MAP_FILE__"
-local USER_PASSWORD    = "__USER_PASSWORD__"
+local USER_PASSWORD    = "__SSO_USER_PASSWORD__"
 local REDIRECT         = "__REDIRECT__"
 
 local SESSION_DAYS     = 90          -- matches the API default (SESSION_DAYS)
