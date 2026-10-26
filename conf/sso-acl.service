@@ -3,6 +3,10 @@
 # parks the ACL mask at --- and silently kills the www-data read entry.
 [Unit]
 Description=__APP__ SSO ACL repair
+# The API can save several times in a burst; never let the default
+# start-limit disarm the watchdog (that would also fail the .path unit).
+StartLimitIntervalSec=0
+StartLimitBurst=0
 
 [Service]
 Type=oneshot

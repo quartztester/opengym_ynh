@@ -1,6 +1,8 @@
 # Fires the ACL repair service whenever the API rewrites db.json or secret.
 [Unit]
 Description=__APP__ SSO ACL watchdog
+StartLimitIntervalSec=0
+StartLimitBurst=0
 
 [Path]
 PathChanged=__DATA_DIR__/db.json
