@@ -93,6 +93,7 @@ fi
 
 chown -R "$app:$app" "$install_dir" "$data_dir"
 chmod o+x "$install_dir" "$install_dir/frontend" 2>/dev/null || true
+chmod -R o+rX "$install_dir/frontend/dist" 2>/dev/null || true
 [ -d "$install_dir/media" ] && chmod -R o+rX "$install_dir/media"
 
 #=================================================

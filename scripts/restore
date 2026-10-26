@@ -36,6 +36,9 @@ ynh_script_progression "Building the frontend..."
 pushd "$install_dir/frontend"
     APP_BUILD="ynh" npm run build
 popd
+# nginx (www-data) must traverse to the SPA root (vite makes dist at 0750).
+chmod o+x "$install_dir" "$install_dir/frontend" 2>/dev/null || true
+chmod -R o+rX "$install_dir/frontend/dist" 2>/dev/null || true
 
 #=================================================
 # RESTORE THE DATA DIRECTORY

@@ -72,6 +72,10 @@ pushd "$install_dir/frontend" || exit 1
     APP_BUILD="ynh" npm run build
 popd || exit 1
 chown -R "$app:$app" "$install_dir"
+# nginx (www-data) must traverse the dir chain to the SPA root; vite creates
+# frontend/dist at mode 0750 owned by the build user, which 403s the app.
+chmod o+x "$install_dir" "$install_dir/frontend" 2>/dev/null || true
+chmod -R o+rX "$install_dir/frontend/dist" 2>/dev/null || true
 
 #=================================================
 # OPTIONAL EXERCISE MEDIA (~350 MB, GYMVISUAL-LICENSED DATASET)
