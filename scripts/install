@@ -131,7 +131,7 @@ done
 [ "$waited" -ge 60 ] && ynh_print_warn "API not answering on 127.0.0.1:$port after 60s — check: journalctl -u $app"
 
 #=================================================
-# PORTAL SSO WALK-IN (opt-in feature, off by default)
+# PORTAL SSO WALK-IN (OPT-IN FEATURE, OFF BY DEFAULT)
 #=================================================
 ynh_script_progression "Setting up portal SSO walk-in login files..."
 ynh_app_setting_set --key=sso_enabled --value="${sso_enabled:-0}"

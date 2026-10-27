@@ -12,12 +12,8 @@ Self-hosted gym and body-weight tracker with passkey login
 
 [![🌐 Official app website](https://img.shields.io/badge/Official_app_website-darkgreen?style=for-the-badge)](https://opengym.duarte-santos.ch)
 [![App Demo](https://img.shields.io/badge/App_Demo-blue?style=for-the-badge)](https://opengym.duarte-santos.ch/demo/)
-[![Version: 1.3.10~ynh2](https://img.shields.io/badge/Version-1.3.10~ynh2-rgb(18,138,11)?style=for-the-badge)](https://ci-apps.yunohost.org/ci/apps/opengym/)
+![Version: 1.3.10~ynh4](https://img.shields.io/badge/Version-1.3.10~ynh4-rgb(18,138,11)?style=for-the-badge)
 
-<div align="center">
-<a href="https://apps.yunohost.org/app/opengym"><img height="100px" src="https://github.com/YunoHost/yunohost-artwork/raw/refs/heads/main/badges/neopossum-badges/badge_more_info_on_the_appstore.svg"/></a>
-<a href="https://github.com/YunoHost-Apps/opengym_ynh/issues"><img height="100px" src="https://github.com/YunoHost/yunohost-artwork/raw/refs/heads/main/badges/neopossum-badges/badge_report_an_issue.svg"/></a>
-</div>
 
 
 ## Screenshots
@@ -27,19 +23,15 @@ Self-hosted gym and body-weight tracker with passkey login
 
 ## 📦 Developer info
 
-[![Automatic tests level](https://apps.yunohost.org/badge/cilevel/opengym)](https://ci-apps.yunohost.org/ci/apps/opengym/)
 
 🛠️ Upstream openGym repository: <https://github.com/DuarteSantos8/openGym>
 
-Pull request are welcome and should target the [`testing` branch](https://github.com/YunoHost-Apps/opengym_ynh/tree/testing).
 
 The `testing` branch can be tested using:
 ```
 # fresh install:
-sudo yunohost app install https://github.com/YunoHost-Apps/opengym_ynh/tree/testing
 
 # upgrade an existing install:
-sudo yunohost app upgrade opengym -u https://github.com/YunoHost-Apps/opengym_ynh/tree/testing
 ```
 
 You can also switch to the testing branch to update from testing by default (as same as for APT when you chose to use a testing repos) with this command:
