@@ -4,7 +4,7 @@ id = "opengym"
 name = "openGym"
 description.en = "Gym and body-weight tracker with passkey login"
 
-version = "1.3.10~ynh4"
+version = "1.4.3~ynh1"
 
 maintainers = ["quartztester"]
 
@@ -49,8 +49,8 @@ ram.runtime = "300M"
 
 [resources]
     [resources.sources.main]
-    url = "https://github.com/DuarteSantos8/openGym/archive/refs/tags/v1.3.10.tar.gz"
-    sha256 = "8972c53e56a6fec1f1e21737e77973d87b71b11f452940f4709f187d4e09cc2c"
+    url = "https://github.com/DuarteSantos8/openGym/archive/refs/tags/v1.4.3.tar.gz"
+    sha256 = "5e1d265352fa7b33e8fa984ba8fda9dabdec38a8c21dafa11086ea47cec077d6"
 
     [resources.system_user]
 
