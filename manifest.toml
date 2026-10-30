@@ -2,7 +2,7 @@ packaging_format = 2
 
 id = "opengym"
 name = "openGym"
-description.en = "Self-hosted gym and body-weight tracker with passkey login"
+description.en = "Gym and body-weight tracker with passkey login"
 
 version = "1.3.10~ynh4"
 
