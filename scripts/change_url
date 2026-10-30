@@ -25,8 +25,7 @@ ynh_config_add_nginx
 # UPDATE PASSKEY CONFIG
 #=================================================
 
-# Passkey relying party is bound to the origin: re-render the three
-# origin-derived lines in env, keeping any admin-added lines.
+# Passkeys bind to the origin: re-render the origin-derived env lines, keeping admin-added lines.
 if [ -f "$install_dir/env" ]; then
     ynh_script_progression "Re-rendering passkey config (RP_ID=$domain)..."
     grep -vE '^(RP_ID|ORIGIN|RP_NAME)=' "$install_dir/env" > /tmp/$app-env.$$ || true
@@ -44,8 +43,7 @@ fi
 #=================================================
 # PORTAL SSO WALK-IN
 #=================================================
-# Regex permission URLs render once at install: re-pin to the new domain/path,
-# then re-render the mint-route lua (origin, redirect path, ACLs unchanged).
+# Regex permission URLs render once at install: re-pin to the new domain/path, then re-render the mint lua.
 ynh_permission_url --permission="sso" --url="re:^${domain}\\/(?:.*\\/)?ynh-sso-login$" 2>/dev/null || \
     ynh_print_warn "Could not re-pin the sso permission URL — re-check after this change."
 _opengym_sso_setup

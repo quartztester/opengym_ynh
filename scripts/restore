@@ -84,9 +84,7 @@ fi
 #=================================================
 # PORTAL SSO WALK-IN FILES
 #=================================================
-# Re-render the mint-route lua (settings may differ post-restore) and re-apply
-# the www-data read ACLs (tar round-trips drop them). The portal-user→uid map
-# is not restored and needs no backup: it self-heals by name on next visit.
+# Re-render the mint lua (settings may differ post-restore; tar round-trips drop the ACLs); the portal-user→uid map needs no backup — it self-heals by name on next visit.
 ynh_script_progression "Setting up portal SSO walk-in login files..."
 ynh_app_setting_set --key=sso_enabled --value="$(ynh_app_setting_get --key=sso_enabled || echo 0)"
 _opengym_sso_setup

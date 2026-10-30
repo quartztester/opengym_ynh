@@ -66,8 +66,7 @@ pushd "$install_dir/frontend" || exit 1
     APP_BUILD="ynh" npm run build
 popd || exit 1
 
-# Media dataset persists across upgrades (it lives in install_dir/media and
-# ynh_setup_source only replaces the extracted tarball paths); no refetch.
+# Media dataset persists across upgrades (ynh_setup_source only replaces tarball paths); no refetch.
 
 #=================================================
 # REAPPLY SYSTEM CONFIGURATION
@@ -121,9 +120,7 @@ done
 #=================================================
 # PORTAL SSO WALK-IN FILES
 #=================================================
-# Re-render after the source swap: the glue lives outside the upstream tree,
-# so an upgrade can never conflict with it; this only refreshes render inputs
-# (and applies the default-ACL so the mint route can still read secret/db).
+# Re-render after the source swap: the glue lives outside the upstream tree, so upgrades never conflict; this refreshes render inputs and the default ACL.
 ynh_script_progression "Refreshing portal SSO walk-in files..."
 _opengym_sso_setup
 

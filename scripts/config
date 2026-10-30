@@ -11,9 +11,7 @@ source /usr/share/yunohost/helpers
 # CUSTOM APPLY
 #=================================================
 
-# Panel answers are stored by the core; re-render the mint-route lua with
-# them and reload nginx so the lua file cache picks it up immediately
-# (otherwise a code-cache expiry of up to 60s delays the toggle).
+# Re-render the mint lua and reload nginx so its lua code cache picks it up now (else up to 60s expiry delays the toggle).
 ynh_app_config_apply() {
 	_ynh_app_config_apply
 	_opengym_sso_setup
