@@ -66,7 +66,7 @@ pushd "$install_dir/frontend" || exit 1
     APP_BUILD="ynh" npm run build
 popd || exit 1
 
-# Media dataset persists across upgrades (ynh_setup_source only replaces tarball paths); no refetch.
+# Exercise media ships in the tarball (catalogue/media/), refreshed with every source swap.
 
 #=================================================
 # REAPPLY SYSTEM CONFIGURATION
@@ -93,7 +93,9 @@ fi
 chown -R "$app:$app" "$install_dir" "$data_dir"
 chmod o+x "$install_dir" "$install_dir/frontend" 2>/dev/null || true
 chmod -R o+rX "$install_dir/frontend/dist" 2>/dev/null || true
-[ -d "$install_dir/media" ] && chmod -R o+rX "$install_dir/media"
+# Exercise media ships in the tarball (catalogue/media/); nginx reads it directly.
+chmod o+x "$install_dir/catalogue" 2>/dev/null || true
+chmod -R o+rX "$install_dir/catalogue/media" 2>/dev/null || true
 
 #=================================================
 # START SYSTEMD SERVICE

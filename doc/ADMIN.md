@@ -4,11 +4,11 @@ anonymous sign-up. Data folder: app data dir, plain files.
 
 ## Notable settings
 
-- **Exercise media** — the installer can fetch the ~350 MB exercise
-  photo/animation dataset once (prompt at install). Without it the app works
-  but shows exercises without pictures. The media are (c) GymVisual and used
-  under the dataset's terms, not the app's AGPL — which is why they are not
-  shipped in this repository or fetched unconditionally.
+- **Exercise media** — the 6,554 stills + 6,554 animation clips ship inside the
+  pinned upstream source tarball (`catalogue/media/`, ~260 MB) and are served
+  read-only by nginx at `<path>/exercise-media/`; nothing is fetched at
+  install. They are (c) the dataset authors and used under the dataset's
+  terms, not the app's AGPL (see the app's NOTICE.md).
 - **Accounts** — the first account registered in the app becomes admin
   (`FIRST_USER_ADMIN=1`). The YunoHost permission on the URL (default:
   `all_users`) is a reachability gate, not the app identity; signup can be
@@ -56,5 +56,3 @@ before that becomes the owner.
   (upstream design). The portal SSO walk-in above works around this with a
   package-side mint route — inside the app, accounts and passkeys stay the
   app's own; portal login + one-time app login remains the fallback UX.
-- The ~350 MB media fetch at install comes from the upstream dataset host; a
-  failure there does not break the install (warns and continues).

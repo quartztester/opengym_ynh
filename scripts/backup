@@ -20,16 +20,11 @@ ynh_backup "$data_dir"
 # BACKUP ENV AND SYSTEMD UNIT
 #=================================================
 
-# Only env + unit are archived: the frontend build and node_modules are reproducible from the tarball.
+# Only env + unit are archived: the frontend build, node_modules and the exercise
+# media (catalogue/media/, served at /exercise-media/) are all reproducible from
+# the pinned source tarball, so restore regenerates them by re-extracting + rebuild.
 ynh_backup "$install_dir/env"
 ynh_backup "/etc/systemd/system/$app.service"
-
-# The exercise media dataset is big but not refetchable deterministically (unpinned third-party repo),
-# so archive it when present. Absent when install chose download_media=false; ynh_backup errors on
-# missing paths, hence the guard.
-if [ -d "$install_dir/media" ]; then
-    ynh_backup "$install_dir/media"
-fi
 
 #=================================================
 # END OF SCRIPT

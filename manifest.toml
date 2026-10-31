@@ -4,7 +4,7 @@ id = "opengym"
 name = "openGym"
 description.en = "Gym and body-weight tracker with passkey login"
 
-version = "1.4.3~ynh1"
+version = "1.4.3~ynh2"
 
 maintainers = ["quartztester"]
 
@@ -40,12 +40,6 @@ ram.runtime = "300M"
     # is double-gated: YunoHost SSO decides *who may reach the page*, the app
     # decides *who may use it*. Default to portal users only.
     default = "all_users"
-
-    [install.download_media]
-    ask.en = "Download the exercise media library (~350 MB, one time)?"
-    help.en = "Photos and animations for the 1,300+ exercise library, fetched from the upstream dataset. Without them the app works but shows exercises without pictures. The images are (c) GymVisual and used under the dataset's terms, not the app's AGPL."
-    type = "boolean"
-    default = true
 
 [resources]
     [resources.sources.main]

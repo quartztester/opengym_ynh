@@ -5,10 +5,11 @@ de l'application, en fichiers simples.
 
 ## Réglages notables
 
-- **Médias des exercices** — l'installeur peut télécharger une fois le jeu de
-  données d'illustrations (~350 Mo, question à l'installation). Sans lui
-  l'application fonctionne mais affiche les exercices sans image. Les images
-  sont (c) GymVisual, utilisées sous les conditions du jeu de données.
+- **Médias des exercices** — les 6 554 illustrations (.webp) et 6 554
+  animations (.mp4) sont livrées dans l'archive source amont épinglée
+  (`catalogue/media/`, ~260 Mo) et servies en lecture seule par nginx sous
+  `<chemin>/exercise-media/` ; rien n'est téléchargé à l'installation. Elles
+  sont (c) leurs auteurs, utilisées sous les conditions du jeu de données.
 - **Comptes** — le premier compte créé dans l'application en devient
   l'administrateur (`FIRST_USER_ADMIN=1`). La permission YunoHost sur l'URL
   (défaut : `all_users`) est une porte d'accès, pas l'identité applicative ;

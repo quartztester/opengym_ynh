@@ -66,28 +66,15 @@ chmod o+x "$install_dir" "$install_dir/frontend" 2>/dev/null || true
 chmod -R o+rX "$install_dir/frontend/dist" 2>/dev/null || true
 
 #=================================================
-# OPTIONAL EXERCISE MEDIA (~350 MB, GYMVISUAL-LICENSED DATASET)
+# EXERCISE MEDIA (BUNDLED IN THE SOURCE TARBALL)
 #=================================================
-download_media=$(ynh_app_setting_get --key=download_media)
-if [ "$download_media" = "1" ] || [ "$download_media" = "true" ]; then
-    ynh_script_progression "Downloading exercise media dataset (one time, ~350 MB)..."
-    # Same source as upstream's compose 'media' service: MIT metadata, GymVisual (c) images — fetched, not redistributed. Lands nginx-readable in install_dir.
-    # Clean any stale clone first: a failed earlier run would block git clone.
-    ynh_safe_rm /tmp/opengym-dataset
-    mkdir -p /tmp/opengym-dataset && ynh_safe_rm /tmp/opengym-dataset
-    if git clone --depth 1 https://github.com/hasaneyldrm/exercises-dataset /tmp/opengym-dataset >>/var/log/$app-install.log 2>&1; then
-        mkdir -p "$install_dir/media/img" "$install_dir/media/gif"
-        cp /tmp/opengym-dataset/images/*.jpg "$install_dir/media/img/" 2>>/var/log/$app-install.log
-        cp /tmp/opengym-dataset/videos/*.gif "$install_dir/media/gif/" 2>>/var/log/$app-install.log
-        ynh_print_info "Exercise media: $(ls "$install_dir/media/img" | wc -l) images ready."
-    else
-        ynh_print_warn "Exercise media download failed (network?) — app works without images; re-run later from the console docs."
-    fi
-    ynh_safe_rm /tmp/opengym-dataset
-fi
-# The 750 default 404s every static file (→ redirect loop via the SPA fallback); nginx needs traversal.
-chmod o+x "$install_dir" "$install_dir/frontend" 2>/dev/null || true
-[ -d "$install_dir/media" ] && chmod -R o+rX "$install_dir/media"
+# The 6554 stills (.webp) + 6554 clips (.mp4) live at catalogue/media/ inside
+# the upstream tarball — nothing is downloaded. nginx serves them read-only at
+# __PATH__/exercise-media/ (see conf/nginx.conf); open traversal + read for
+# www-data (install_dir defaults to 0750).
+ynh_script_progression "Opening bundled exercise media for nginx..."
+chmod o+x "$install_dir/catalogue" 2>/dev/null || true
+chmod -R o+rX "$install_dir/catalogue/media" 2>/dev/null || true
 chown -R "$app:$app" "$data_dir"
 
 #=================================================
