@@ -24,6 +24,13 @@ ynh_backup "$data_dir"
 ynh_backup "$install_dir/env"
 ynh_backup "/etc/systemd/system/$app.service"
 
+# The exercise media dataset is big but not refetchable deterministically (unpinned third-party repo),
+# so archive it when present. Absent when install chose download_media=false; ynh_backup errors on
+# missing paths, hence the guard.
+if [ -d "$install_dir/media" ]; then
+    ynh_backup "$install_dir/media"
+fi
+
 #=================================================
 # END OF SCRIPT
 #=================================================

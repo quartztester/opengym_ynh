@@ -48,6 +48,15 @@ ynh_script_progression "Restoring env and data..."
 ynh_restore "$data_dir"
 ynh_restore "$install_dir/env"
 
+# The media archive exists only if install fetched it AND the backup was media-aware
+# (older archives have no media row); ynh_restore hard-fails on non-data paths
+# missing from the archive, so consult the backup CSV before asking for it.
+# NB: the CSV quotes every field, hence the quoted pattern.
+if grep -qE "\"$install_dir/media\"" "$YNH_BACKUP_CSV" 2>/dev/null; then
+    ynh_script_progression "Restoring exercise media dataset..."
+    ynh_restore "$install_dir/media"
+fi
+
 #=================================================
 # RESTORE SYSTEM CONFIGURATION
 #=================================================
@@ -64,6 +73,8 @@ ynh_config_add_nginx
 chown -R "$app:$app" "$install_dir" "$data_dir"
 chmod 600 "$install_dir/env"
 chmod 750 "$data_dir"
+# nginx serves the media dataset directly (same traversal/read fix as install).
+[ -d "$install_dir/media" ] && chmod -R o+rX "$install_dir/media"
 
 #=================================================
 # START SYSTEMD SERVICE
